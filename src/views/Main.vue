@@ -1,14 +1,23 @@
 <template>
-  <div>
-    <strong v-if="loading">Loading...</strong>
-    <ul v-if="manifestData">
-      <li v-for="(data, url) in manifestData" v-bind:key="url">
-        <router-link :to="{path: 'template', query: {url}}">{{data.title}}</router-link>
-        <br>
-        <small>{{data.description}}</small>
-      </li>
-    </ul>
-  </div>
+  <v-container fluid>
+    <v-layout align-center justify-center v-if="loading">
+      <v-progress-circular indeterminate size="128"/>
+    </v-layout>
+    <h1 v-else>Available Templates</h1>
+    <v-list v-if="manifestData" two-line>
+      <v-list-tile
+        v-for="(data, url) in manifestData"
+        :key="url"
+        ripple
+        @click="$router.push({path: 'template', query: {url}})"
+      >
+        <v-list-tile-content>
+          <v-list-tile-title>{{data.title}}</v-list-tile-title>
+          <v-list-tile-sub-title>{{data.description}}</v-list-tile-sub-title>
+        </v-list-tile-content>
+      </v-list-tile>
+    </v-list>
+  </v-container>
 </template>
 
 <script lang="ts">

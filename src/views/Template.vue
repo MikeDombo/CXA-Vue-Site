@@ -1,40 +1,46 @@
 <template>
-  <div>
-    <strong v-if="loading">Loading...</strong>
-    <div v-if="manifestData">
-      <h1>{{manifestData.title}}</h1>
-      <h3>{{manifestData.author}}</h3>
-      <small>
-        <a :href="manifestData.repository">Project Repository</a>
-      </small>
-      <p>{{manifestData.description}}</p>
-    </div>
-    <form @submit.prevent="submit">
-      <div
-        class="form"
-        v-if="manifestData.uses_template_variables && manifestData.required_template_variables"
-      >
-        <template v-for="(variableData, variableName) in manifestData.required_template_variables">
-          <div v-bind:key="variableName">
-            <label
-              v-bind:class="{requiredLabel: !variableData.type.includes('opt(')}"
-            >{{variableName}}</label>
-            <input
-              type="text"
-              v-if="variableData.type.includes('string')"
-              v-model.trim="formData[variableName]"
+  <v-container fluid v-if="loading">
+    <v-layout align-center justify-center>
+      <v-progress-circular indeterminate size="128"/>
+    </v-layout>
+  </v-container>
+  <v-container fluid v-else>
+    <v-layout>
+      <v-flex>
+        <div v-if="manifestData">
+          <h1>{{manifestData.title}}</h1>
+          <h3>{{manifestData.author}}</h3>
+          <a :href="manifestData.repository">Project Repository</a>
+          <p>{{manifestData.description}}</p>
+        </div>
+      </v-flex>
+    </v-layout>
+    <v-layout
+      row
+      wrap
+      v-if="manifestData.uses_template_variables && manifestData.required_template_variables"
+    >
+      <v-flex>
+        <v-form @submit.prevent="submit" v-model="formIsValid">
+          <v-layout row wrap>
+            <template
+              v-for="(variableData, variableName) in manifestData.required_template_variables"
             >
-            <input
-              type="number"
-              v-if="variableData.type.includes('integer')"
-              v-model.number="formData[variableName]"
-            >
-          </div>
-        </template>
-      </div>
-      <button class="button btn-primary btn-large" type="submit">Create App Now!</button>
-    </form>
-  </div>
+              <v-flex xs12 md4 pa-2 :key="variableName">
+                <v-text-field
+                  v-model.trim="formData[variableName]"
+                  :label="variableName"
+                  :required="!variableData.type.includes('opt(')"
+                  :rules="rules[variableName]"
+                />
+              </v-flex>
+            </template>
+          </v-layout>
+          <v-btn large ripple type="submit" color="primary">Create App Now!</v-btn>
+        </v-form>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -48,8 +54,10 @@ import urljoin from "url-join";
 export default class Template extends Vue {
   loading = false;
   url: string = "";
-  manifestData = {};
+  manifestData: any = {};
   formData = {};
+  formIsValid = false;
+  rules: any = {};
 
   mounted() {
     this.url = this.$route.query.url as string;
@@ -64,8 +72,60 @@ export default class Template extends Vue {
       "master/manifest.cxa.yml"
     );
 
-    this.manifestData = jsyaml.load(await (await fetch(rawManifestURL)).text());
+    const manifestData = jsyaml.load(
+      await (await fetch(rawManifestURL)).text()
+    );
     this.loading = false;
+
+    if (
+      manifestData.uses_template_variables &&
+      manifestData.required_template_variables
+    ) {
+      this.rules = Object.entries(
+        manifestData.required_template_variables
+      ).reduce((soFar: any, [key, value]: any) => {
+        const theseRules: any[] = [];
+        if ("type" in value) {
+          if (!value.type.includes("opt(")) {
+            theseRules.push((v: string) => !!v || `${key} is required`);
+          }
+
+          if (value.type.includes("integer")) {
+            theseRules.push(
+              (v: string) =>
+                Number.isInteger(parseFloat(v)) || `${key} must be an integer`
+            );
+          } else if (value.type.includes("string")) {
+            if ("validation" in value) {
+              const regexValidations = {
+                regexMatch: true,
+                regexNoMatch: false
+              };
+              Object.entries(regexValidations).forEach(([k, val]) => {
+                let rule: any = value.validation;
+                rule = rule.match(k + "\\((.*)\\)");
+                if (rule) {
+                  rule = rule[1];
+                  theseRules.push((v: string) => {
+                    if (typeof v === "undefined") {
+                      return false;
+                    }
+                    if ((v.match(rule) === null) === val) {
+                      return `Failed to validate ${key} with regex check ${rule}`;
+                    }
+                    return false;
+                  });
+                }
+              });
+            }
+          }
+        }
+        soFar[key] = theseRules;
+        return soFar;
+      }, {});
+    }
+
+    this.manifestData = manifestData;
   }
 
   submit() {
