@@ -73,6 +73,7 @@ export default class Template extends Vue {
   mounted() {
     this.url = this.$route.query.url as string;
     this.fetchData();
+    document.title = "CXA | Template";
   }
 
   async fetchData() {
@@ -87,6 +88,7 @@ export default class Template extends Vue {
       await (await fetch(rawManifestURL)).text()
     );
     this.loading = false;
+    document.title = "CXA | Template | " + manifestData.title;
 
     if (
       manifestData.uses_template_variables &&
