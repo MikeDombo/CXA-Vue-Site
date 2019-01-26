@@ -1,46 +1,49 @@
 <template>
-  <v-container fluid v-if="loading">
-    <v-layout align-center justify-center>
-      <v-progress-circular indeterminate size="128"/>
-    </v-layout>
-  </v-container>
-  <v-container fluid v-else>
-    <v-layout>
-      <v-flex>
-        <div v-if="manifestData">
-          <h1>{{manifestData.title}}</h1>
-          <h3>{{manifestData.author}}</h3>
-          <a :href="manifestData.repository">Project Repository</a>
-          <p>{{manifestData.description}}</p>
-        </div>
-      </v-flex>
-    </v-layout>
-    <v-layout
-      row
-      wrap
-      v-if="manifestData.uses_template_variables && manifestData.required_template_variables"
-    >
-      <v-flex>
-        <v-form @submit.prevent="submit" v-model="formIsValid">
-          <v-layout row wrap>
-            <template
-              v-for="(variableData, variableName) in manifestData.required_template_variables"
-            >
-              <v-flex xs12 md4 pa-2 :key="variableName">
-                <v-text-field
-                  v-model.trim="formData[variableName]"
-                  :label="variableName"
-                  :required="!variableData.type.includes('opt(')"
-                  :rules="rules[variableName]"
-                />
-              </v-flex>
-            </template>
-          </v-layout>
-          <v-btn large ripple type="submit" color="primary">Create App Now!</v-btn>
-        </v-form>
-      </v-flex>
-    </v-layout>
-  </v-container>
+  <div>
+    <v-snackbar :value="showAlert" color="error" bottom auto-height>{{alertText}}</v-snackbar>
+    <v-container fluid v-if="loading">
+      <v-layout align-center justify-center>
+        <v-progress-circular indeterminate size="128"/>
+      </v-layout>
+    </v-container>
+    <v-container fluid v-else>
+      <v-layout>
+        <v-flex>
+          <div v-if="manifestData">
+            <h1>{{manifestData.title}}</h1>
+            <h3>{{manifestData.author}}</h3>
+            <a :href="manifestData.repository">Project Repository</a>
+            <p>{{manifestData.description}}</p>
+          </div>
+        </v-flex>
+      </v-layout>
+      <v-layout
+        row
+        wrap
+        v-if="manifestData.uses_template_variables && manifestData.required_template_variables"
+      >
+        <v-flex>
+          <v-form @submit.prevent="submit" v-model="formIsValid">
+            <v-layout row wrap>
+              <template
+                v-for="(variableData, variableName) in manifestData.required_template_variables"
+              >
+                <v-flex xs12 md4 pa-2 :key="variableName">
+                  <v-text-field
+                    v-model.trim="formData[variableName]"
+                    :label="variableName"
+                    :required="!variableData.type.includes('opt(')"
+                    :rules="rules[variableName]"
+                  />
+                </v-flex>
+              </template>
+            </v-layout>
+            <v-btn large ripple type="submit" color="primary">Create App Now!</v-btn>
+          </v-form>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
@@ -58,6 +61,8 @@ export default class Template extends Vue {
   formData = {};
   formIsValid = false;
   rules: any = {};
+  showAlert = false;
+  alertText = "";
 
   mounted() {
     this.url = this.$route.query.url as string;
@@ -129,7 +134,11 @@ export default class Template extends Vue {
   }
 
   submit() {
-    console.log("submit");
+    if (!this.formIsValid) {
+      this.alertText = "Fix form validation errors before proceeding";
+      this.showAlert = true;
+      return;
+    }
     fetch("http://localhost:8000/transform", {
       method: "POST",
       body: JSON.stringify({
