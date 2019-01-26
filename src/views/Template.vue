@@ -1,6 +1,12 @@
 <template>
   <div>
-    <v-snackbar :value="showAlert" color="error" bottom auto-height>{{alertText}}</v-snackbar>
+    <v-snackbar
+      v-model="showAlert"
+      color="error"
+      bottom
+      :right="$vuetify.breakpoint.mdAndUp"
+      auto-height
+    >{{alertText}}</v-snackbar>
     <v-container fluid v-if="loading">
       <v-layout align-center justify-center>
         <v-progress-circular indeterminate size="128"/>
