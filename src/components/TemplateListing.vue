@@ -18,18 +18,17 @@
 </template>
 <script lang="ts">
     import LoadingSpinner from "./LoadingSpinner.vue";
-    import {Component, Vue} from "vue-property-decorator";
+    import {Component, Prop, Vue} from "vue-property-decorator";
     import jsyaml from "js-yaml";
 
     @Component({
-        components: {LoadingSpinner},
-        props: {
-            manifests: Array
-        }
+        components: {LoadingSpinner}
     })
     export default class TemplateListing extends Vue {
         loading = false;
         manifestData: { [index: string]: any } = {};
+        @Prop({default: []})
+        manifests: Array<string[]> = [];
 
         mounted() {
             this.onMount();
@@ -38,7 +37,7 @@
         async onMount() {
             this.loading = true;
             this.manifestData = await this.manifests.reduce(
-                async (soFar, v) => {
+                async (soFar: any, v: string[]) => {
                     soFar[v[0]] = jsyaml.load(await (await fetch(v[1])).text());
                     return soFar;
                 },

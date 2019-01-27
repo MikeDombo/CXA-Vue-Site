@@ -166,7 +166,7 @@
         }
 
         submit() {
-            if (!this.$refs.form.validate()) {
+            if (!(this.$refs.form as any).validate()) {
                 this.alertText = "Fix form validation errors before proceeding";
                 this.showAlert = true;
                 return;
@@ -178,7 +178,7 @@
                     const variableData = this.manifestData.required_template_variables[variableName];
                     if ("type" in variableData) {
                         if (variableData.type.includes("integer") || variableData.type.includes("float")) {
-                            this.formData[variableName] = parseFloat(this.formData[variableName]);
+                            (this.formData as any)[variableName] = parseFloat((this.formData as any)[variableName]);
                         }
                     }
                 });
