@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-    import TemplateListing from "@/views/TemplateListing.vue";
+    import TemplateListing from "@/components/TemplateListing.vue";
     import {Component, Vue} from "vue-property-decorator";
 
     @Component({

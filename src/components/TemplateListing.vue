@@ -17,7 +17,7 @@
   </div>
 </template>
 <script lang="ts">
-    import LoadingSpinner from "@/components/LoadingSpinner.vue";
+    import LoadingSpinner from "./LoadingSpinner.vue";
     import {Component, Vue} from "vue-property-decorator";
     import jsyaml from "js-yaml";
 

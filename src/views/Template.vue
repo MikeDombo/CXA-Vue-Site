@@ -6,7 +6,8 @@
       bottom
       :right="$vuetify.breakpoint.mdAndUp"
       auto-height
-    >{{alertText}}</v-snackbar>
+    >{{alertText}}
+    </v-snackbar>
     <v-container fluid v-if="loading">
       <v-layout align-center justify-center>
         <v-progress-circular indeterminate size="128"/>
@@ -29,7 +30,7 @@
         v-if="manifestData.uses_template_variables && manifestData.required_template_variables"
       >
         <v-flex>
-          <v-form @submit.prevent="submit" v-model="formIsValid">
+          <v-form @submit.prevent="submit" v-model="formIsValid" ref="form">
             <v-layout row wrap>
               <template
                 v-for="(variableData, variableName) in manifestData.required_template_variables"
@@ -53,127 +54,159 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import jsyaml from "js-yaml";
-import urljoin from "url-join";
+    import {Component, Vue} from "vue-property-decorator";
+    import jsyaml from "js-yaml";
+    import urljoin from "url-join";
 
-@Component({
-  components: {}
-})
-export default class Template extends Vue {
-  loading = false;
-  url: string = "";
-  manifestData: any = {};
-  formData = {};
-  formIsValid = false;
-  rules: any = {};
-  showAlert = false;
-  alertText = "";
+    @Component({
+        components: {}
+    })
+    export default class Template extends Vue {
+        loading = false;
+        url: string = "";
+        manifestData: any = {};
+        formData = {};
+        formIsValid = false;
+        rules: any = {};
+        showAlert = false;
+        alertText = "";
 
-  mounted() {
-    this.url = this.$route.query.url as string;
-    this.fetchData();
-    document.title = "CXA | Template";
-  }
-
-  async fetchData() {
-    this.loading = true;
-
-    const rawManifestURL = urljoin(
-      this.url.replace("github.com", "raw.githubusercontent.com"),
-      "master/manifest.cxa.yml"
-    );
-
-    const manifestData = jsyaml.load(
-      await (await fetch(rawManifestURL)).text()
-    );
-    this.loading = false;
-    document.title = "CXA | Template | " + manifestData.title;
-
-    if (
-      manifestData.uses_template_variables &&
-      manifestData.required_template_variables
-    ) {
-      this.rules = Object.entries(
-        manifestData.required_template_variables
-      ).reduce((soFar: any, [key, value]: any) => {
-        const theseRules: any[] = [];
-        if ("type" in value) {
-          if (!value.type.includes("opt(")) {
-            theseRules.push((v: string) => !!v || `${key} is required`);
-          }
-
-          if (value.type.includes("integer")) {
-            theseRules.push(
-              (v: string) =>
-                Number.isInteger(parseFloat(v)) || `${key} must be an integer`
-            );
-          } else if (value.type.includes("string")) {
-            if ("validation" in value) {
-              const regexValidations = {
-                regexMatch: true,
-                regexNoMatch: false
-              };
-              Object.entries(regexValidations).forEach(([k, val]) => {
-                let rule: any = value.validation;
-                rule = rule.match(k + "\\((.*)\\)");
-                if (rule) {
-                  rule = rule[1];
-                  theseRules.push((v: string) => {
-                    if (typeof v === "undefined") {
-                      return false;
-                    }
-                    if ((v.match(rule) === null) === val) {
-                      return `Failed to validate ${key} with regex check ${rule}`;
-                    }
-                    return false;
-                  });
-                }
-              });
-            }
-          }
+        mounted() {
+            this.url = this.$route.query.url as string;
+            document.title = "CXA | Template";
+            this.fetchData();
         }
-        soFar[key] = theseRules;
-        return soFar;
-      }, {});
+
+        async fetchData() {
+            this.loading = true;
+
+            const rawManifestURL = urljoin(
+                this.url.replace("github.com", "raw.githubusercontent.com"),
+                "master/manifest.cxa.yml"
+            );
+
+            const manifestData = jsyaml.load(
+                await (await fetch(rawManifestURL)).text()
+            );
+            this.loading = false;
+            document.title = "CXA | Template | " + manifestData.title;
+
+            if (this.hasVariables(manifestData)) {
+                this.rules = Object.entries(
+                    manifestData.required_template_variables
+                ).reduce((soFar: any, [key, value]: any) => {
+                    const theseRules: any[] = [];
+                    if ("type" in value) {
+                        if (!value.type.includes("opt(")) {
+                            theseRules.push((v: string) => !!v || `${key} is required`);
+                        }
+
+                        if (value.type.includes("integer") || value.type.includes("float")) {
+                            theseRules.push((v: string) => !Number.isNaN(parseFloat(v)) || `${key} must be a number`);
+                            if ("validation" in value && typeof value.validation == "object") {
+                                if ("min" in value.validation) {
+                                    theseRules.push((v: string) =>
+                                        parseFloat(v) >= parseFloat(value.validation.min)
+                                        || `${key} must be greater than or equal to ${value.validation.min}`);
+                                }
+                                if ("max" in value.validation) {
+                                    theseRules.push((v: string) =>
+                                        parseFloat(v) < parseFloat(value.validation.max)
+                                        || `${key} must be less than ${value.validation.max}`);
+                                }
+                            }
+                        }
+
+                        if (value.type.includes("float")) {
+                            theseRules.push(
+                                (v: string) => parseFloat(v) || `${key} must be a float`
+                            );
+                        }
+                        if (value.type.includes("integer")) {
+                            theseRules.push(
+                                (v: string) =>
+                                    Number.isInteger(parseFloat(v)) || `${key} must be an integer`
+                            );
+                        } else if (value.type.includes("string")) {
+                            if ("validation" in value) {
+                                const regexValidations = {
+                                    regexMatch: true,
+                                    regexNoMatch: false
+                                };
+                                Object.entries(regexValidations).forEach(([k, val]) => {
+                                    let rule: any = value.validation;
+                                    rule = rule.match(k + "\\((.*)\\)");
+                                    if (rule) {
+                                        rule = rule[1];
+                                        theseRules.push((v: string) => {
+                                            if (typeof v === "undefined") {
+                                                return false;
+                                            }
+                                            if ((v.match(rule) === null) === val) {
+                                                return `Failed to validate ${key} with regex check ${rule}`;
+                                            }
+                                            return false;
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    soFar[key] = theseRules;
+                    return soFar;
+                }, {});
+            }
+
+            this.manifestData = manifestData;
+        }
+
+        hasVariables(manifestData: any) {
+            return manifestData.uses_template_variables &&
+                manifestData.required_template_variables;
+        }
+
+        submit() {
+            if (!this.$refs.form.validate()) {
+                this.alertText = "Fix form validation errors before proceeding";
+                this.showAlert = true;
+                return;
+            }
+
+
+            if (this.hasVariables(this.manifestData)) {
+                Object.keys(this.manifestData.required_template_variables).forEach((variableName) => {
+                    const variableData = this.manifestData.required_template_variables[variableName];
+                    if ("type" in variableData) {
+                        if (variableData.type.includes("integer") || variableData.type.includes("float")) {
+                            this.formData[variableName] = parseFloat(this.formData[variableName]);
+                        }
+                    }
+                });
+            }
+
+            fetch("https://cxa-transform.mikedombrowski.com/transform", {
+                method: "POST",
+                body: JSON.stringify({
+                    gitURL: this.url.replace(/\/$/, "") + ".git",
+                    template_variables: this.formData
+                }),
+                headers: {"Content-Type": "application/json"}
+            }).then(r => {
+                if (r.status === 200) {
+                    r.blob().then(b => {
+                        const link = document.createElement("a");
+                        link.href = window.URL.createObjectURL(b);
+                        link.download = (this.manifestData as any).title + ".zip";
+
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                }
+            });
+        }
     }
-
-    this.manifestData = manifestData;
-  }
-
-  submit() {
-    if (!this.formIsValid) {
-      this.alertText = "Fix form validation errors before proceeding";
-      this.showAlert = true;
-      return;
-    }
-    fetch("http://localhost:8000/transform", {
-      method: "POST",
-      body: JSON.stringify({
-        gitURL: this.url.replace(/\/$/, "") + ".git",
-        template_variables: this.formData
-      }),
-      headers: { "Content-Type": "application/json" }
-    }).then(r => {
-      if (r.status === 200) {
-        r.blob().then(b => {
-          var link = document.createElement("a");
-          link.href = window.URL.createObjectURL(b);
-          link.download = (this.manifestData as any).title + ".zip";
-
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
-      }
-    });
-  }
-}
 </script>
 
 <style lang="scss">
-.requiredLabel::after {
-  content: "*";
-  color: red;
-}
 </style>
