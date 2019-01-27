@@ -43,8 +43,12 @@
                 </v-flex>
               </template>
             </v-layout>
+            <v-btn large ripple to="/" color="secondary">
+              <v-icon left medium>arrow_back</v-icon>Back
+            </v-btn>
             <v-btn large ripple type="submit" color="primary">Create App Now!</v-btn>
           </v-form>
+          <v-progress-linear indeterminate :active="submitting"/>
         </v-flex>
       </v-layout>
     </v-container>
