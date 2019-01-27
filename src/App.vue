@@ -20,8 +20,8 @@ export default class App extends Vue {}
 </script>
 
 <style lang="scss">
-  .nav-title-link {
-    all: unset;
-  }
+.nav-title-link {
+  all: unset;
+}
 </style>
 
