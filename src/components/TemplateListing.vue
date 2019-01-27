@@ -28,7 +28,7 @@
         loading = false;
         manifestData: { [index: string]: any } = {};
         @Prop({default: []})
-        manifests: Array<string[]> = [];
+        manifests!: Array<string[]>;
 
         mounted() {
             this.onMount();
