@@ -2,7 +2,9 @@
   <div>
     <LoadingSpinner v-if="loading"/>
     <v-stepper v-else vertical v-model="stepperStep">
-      <v-stepper-step step="1" :complete="stepperStep > 1">Platform</v-stepper-step>
+      <v-stepper-step step="1" :complete="stepperStep > 1">
+        <span @click="stepperStep = 1" class="step-title">Platform</span>
+      </v-stepper-step>
       <v-stepper-content step="1">
         <v-form class="pa-1">
           <v-radio-group v-model="codeTypeInput.platform">
@@ -18,7 +20,10 @@
         <v-btn flat @click="stepperStep = 1; codeTypeInput =  {};">Reset</v-btn>
       </v-stepper-content>
 
-      <v-stepper-step step="2" :complete="stepperStep > 2">Type</v-stepper-step>
+      <v-stepper-step step="2" :complete="stepperStep > 2">
+        <span @click="stepperStep = 2" class="step-title" v-if="codeTypeInput.platform">Type</span>
+        <span v-else>Type</span>
+      </v-stepper-step>
       <v-stepper-content step="2">
         <v-form class="pa-1">
           <v-radio-group v-model="codeTypeInput.type">
@@ -34,7 +39,10 @@
         <v-btn flat @click="stepperStep = 1; codeTypeInput =  {};">Reset</v-btn>
       </v-stepper-content>
 
-      <v-stepper-step step="3" :complete="stepperStep > 3">Template Choice</v-stepper-step>
+      <v-stepper-step step="3" :complete="stepperStep > 3">
+        <span @click="stepperStep = 3" class="step-title" v-if="codeTypeInput.type">Template Choice</span>
+        <span v-else>Template Choice</span>
+      </v-stepper-step>
       <v-stepper-content step="3">
         <TemplateListing :manifestData="filteredManifests" class="pa-1"/>
         <v-btn flat @click="stepperStep = 1; codeTypeInput =  {};">Reset</v-btn>
@@ -129,3 +137,9 @@ export default class TemplatePicker extends Vue {
   }
 }
 </script>
+
+<style lang="scss">
+.step-title {
+  cursor: pointer;
+}
+</style>
