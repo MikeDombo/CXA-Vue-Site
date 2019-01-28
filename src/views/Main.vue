@@ -5,30 +5,31 @@
     <div class="pt-4">
       <h3>Available Templates</h3>
       <div class="pt-2">
-        <TemplateListing :manifests="manifests"/>
+        <TemplatePicker :manifests="manifests"/>
       </div>
     </div>
   </v-container>
 </template>
 
 <script lang="ts">
-    import TemplateListing from "@/components/TemplateListing.vue";
-    import {Component, Vue} from "vue-property-decorator";
+import TemplateListing from "@/components/TemplateListing.vue";
+import TemplatePicker from "@/components/TemplatePicker.vue";
+import { Component, Vue } from "vue-property-decorator";
 
-    @Component({
-        components: {TemplateListing}
-    })
-    export default class Main extends Vue {
-        manifests = [
-            [
-                "https://github.com/MikeDombo/CXAPythonCLI/",
-                "https://raw.githubusercontent.com/MikeDombo/CXAPythonCLI/master/manifest.cxa.yml"
-            ]
-        ];
+@Component({
+  components: { TemplateListing, TemplatePicker }
+})
+export default class Main extends Vue {
+  manifests = [
+    [
+      "https://github.com/MikeDombo/CXAPythonCLI/",
+      "https://raw.githubusercontent.com/MikeDombo/CXAPythonCLI/master/manifest.cxa.yml"
+    ]
+  ];
 
-        mounted() {
-            document.title = "CXA | Home";
-        }
-    }
+  mounted() {
+    document.title = "CXA | Home";
+  }
+}
 </script>
 

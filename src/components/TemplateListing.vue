@@ -17,33 +17,17 @@
   </div>
 </template>
 <script lang="ts">
-    import LoadingSpinner from "./LoadingSpinner.vue";
-    import {Component, Prop, Vue} from "vue-property-decorator";
-    import jsyaml from "js-yaml";
+import LoadingSpinner from "./LoadingSpinner.vue";
+import { Component, Prop, Vue } from "vue-property-decorator";
+import jsyaml from "js-yaml";
 
-    @Component({
-        components: {LoadingSpinner}
-    })
-    export default class TemplateListing extends Vue {
-        loading = false;
-        manifestData: { [index: string]: any } = {};
-        @Prop({default: []})
-        manifests!: Array<string[]>;
-
-        mounted() {
-            this.onMount();
-        }
-
-        async onMount() {
-            this.loading = true;
-            this.manifestData = await this.manifests.reduce(
-                async (soFar: any, v: string[]) => {
-                    soFar[v[0]] = jsyaml.load(await (await fetch(v[1])).text());
-                    return soFar;
-                },
-                {} as any
-            );
-            this.loading = false;
-        }
-    }
+@Component({
+  components: { LoadingSpinner }
+})
+export default class TemplateListing extends Vue {
+  loading = false;
+  @Prop({ required: true })
+  // @ts-ignore
+  manifestData: { [index: string]: any };
+}
 </script>
