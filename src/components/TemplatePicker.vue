@@ -99,10 +99,11 @@ export default class TemplatePicker extends Vue {
     this.loading = true;
     this.manifestData = await this.manifests.reduce(
       async (soFar: any, v: string[]) => {
+        soFar = await soFar;
         soFar[v[0]] = jsyaml.load(await (await fetch(v[1])).text());
         return soFar;
       },
-      {} as any
+      {}
     );
 
     Object.keys(this.manifestData).forEach((key: any) => {

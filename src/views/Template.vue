@@ -36,9 +36,10 @@
                 <v-flex xs12 md4 pa-2 :key="variableName">
                   <v-text-field
                     v-model.trim="formData[variableName]"
-                    :label="variableName"
+                    :label="'display_name' in variableData ? variableData.display_name : variableName"
                     :required="!variableData.type.includes('opt(')"
                     :rules="rules[variableName]"
+                    :hint="'hint' in variableData ? variableData.hint : undefined"
                   />
                 </v-flex>
               </template>

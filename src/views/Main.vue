@@ -24,6 +24,10 @@ export default class Main extends Vue {
     [
       "https://github.com/MikeDombo/CXAPythonCLI/",
       "https://raw.githubusercontent.com/MikeDombo/CXAPythonCLI/master/manifest.cxa.yml"
+    ],
+    [
+      "https://github.com/MikeDombo/CXAPythonFlask",
+      "https://raw.githubusercontent.com/MikeDombo/CXAPythonFlask/master/manifest.cxa.yml"
     ]
   ];
 
