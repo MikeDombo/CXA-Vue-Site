@@ -10,13 +10,17 @@
           <v-radio-group v-model="codeTypeInput.platform">
             <v-radio
               v-for="(_, platform) in codeTypes"
-              :label="titlecase(platform)"
               :key="platform"
+              :label="titlecase(platform)"
               :value="platform"
             />
+            <v-radio label="Custom (Enter URL)" value="custom"/>
           </v-radio-group>
         </v-form>
-        <v-btn color="primary" @click="stepperStep = 2">Continue</v-btn>
+        <v-btn
+          color="primary"
+          @click="if(codeTypeInput.platform === 'custom'){ stepperStep = 3;} else { stepperStep = 2;}"
+        >Continue</v-btn>
         <v-btn flat @click="stepperStep = 1; codeTypeInput =  {};">Reset</v-btn>
       </v-stepper-content>
 
@@ -44,7 +48,11 @@
         <span v-else>Template Choice</span>
       </v-stepper-step>
       <v-stepper-content step="3">
-        <TemplateListing :manifestData="filteredManifests" class="pa-1"/>
+        <TemplateListing
+          :manifestData="filteredManifests"
+          :custom="codeTypeInput.platform === 'custom'"
+          class="pa-1"
+        />
         <v-btn flat @click="stepperStep = 1; codeTypeInput =  {};">Reset</v-btn>
       </v-stepper-content>
     </v-stepper>
