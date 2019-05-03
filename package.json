@@ -8,7 +8,7 @@
         "deploy": "git subtree push --prefix dist origin gh-pages"
     },
     "dependencies": {
-        "js-yaml": "^3.12.1",
+        "js-yaml": "^3.13.1",
         "url-join": "^4.0.0",
         "vue": "^2.6.10",
         "vue-class-component": "^7.0.2",
