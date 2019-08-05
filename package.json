@@ -14,7 +14,7 @@
         "vue-class-component": "^7.1.0",
         "vue-property-decorator": "^8.2.1",
         "vue-router": "^3.0.7",
-        "vuetify": "^1.5.16"
+        "vuetify": "^2.0.4"
     },
     "devDependencies": {
         "@types/js-yaml": "^3.12.1",
