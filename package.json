@@ -20,7 +20,7 @@
         "@types/js-yaml": "^3.12.1",
         "@types/url-join": "^4.0.0",
         "@vue/cli-plugin-babel": "^3.12.0",
-        "@vue/cli-plugin-typescript": "^3.12.0",
+        "@vue/cli-plugin-typescript": "^4.0.4",
         "@vue/cli-service": "^3.12.0",
         "node-sass": "^4.12.0",
         "sass-loader": "^7.3.1",
